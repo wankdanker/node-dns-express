@@ -59,6 +59,10 @@ function ExpressDNS (options) {
 		server.serve.apply(server, arguments);
 	};
 
+	DNS.close = function () {
+		server.close.apply(server, arguments);
+	};
+
 	server.on('request', function (req, res) {
 		var request = new DNSRequest(req, res);
 		var response = new DNSResponse(req, res);
