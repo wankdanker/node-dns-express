@@ -7,7 +7,7 @@ module.exports = ExpressDNS;
 
 function ExpressDNS (options) {
 	var DNS = Usey();
-	var server = dns.createServer();
+	var server = dns.createServer(options);
 
 	DNS.use(function (req, res, next) {
 		req.questions.forEach(function (question) {
@@ -24,8 +24,9 @@ function ExpressDNS (options) {
 		DNS[ltype] = function (route, fn) {
 			if (arguments.length === 1) {
 				fn = route;
-				route = null;
+				route = undefined;
 			}
+			route = RegExp(route);
 
 			DNS.use(function (req, res, next) {
 				var questions = req.questions;
@@ -37,7 +38,7 @@ function ExpressDNS (options) {
 					
 					//this is where the matching happens.
 					//TODO: expand this to handle matching in ways other than regex
-					if ((question.typeName === ltype || ltype === 'all') && (!route || route.test(question.name)) ) {
+					if ((question.typeName === ltype || ltype === 'all') && (question.match = route.exec(question.name)) ) {
 						match = true;
 						res.begins += 1;
 
@@ -81,10 +82,11 @@ function DNSResponse (req, res) {
 	self.ends = 0;
 
 	dnsTypes.forEach(function (type) {
-		ltype = type.toLowerCase();
+		var ltype = type.toLowerCase();
 
 		self[ltype] = function () {
 			res.answer.push(dns[type].apply(dns, arguments));
+			return this;
 		}
 	});
 
