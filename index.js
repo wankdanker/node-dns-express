@@ -84,12 +84,16 @@ function DNSResponse (req, res) {
 	var self = this;
 	self.begins = 0;
 	self.ends = 0;
+	self.header = res.header;
 
 	dnsTypes.forEach(function (type) {
 		var ltype = type.toLowerCase();
 
-		self[ltype] = function () {
-			res.answer.push(dns[type].apply(dns, arguments));
+		self[ltype] = function (rr) {
+			if (~['authority', 'additional', 'edns_options'].indexOf(rr && rr.type))
+				res[rr.type].push(dns[type].apply(dns, arguments));
+			else
+				res.answer.push(dns[type].apply(dns, arguments));
 			return this;
 		}
 	});
