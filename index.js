@@ -1,6 +1,6 @@
 var Usey = require('usey')
 	, dns = require('native-dns')
-	, dnsTypes = ['A','AAAA', 'NS', 'CNAME', 'PTR', 'NAPTR', 'TXT', 'MX', 'SRV', 'SOA', 'TLSA']
+	, dnsTypes = ['A','AAAA', 'ANY', 'NS', 'CNAME', 'PTR', 'NAPTR', 'TXT', 'MX', 'SRV', 'SOA', 'TLSA']
 	;
 
 module.exports = ExpressDNS;
@@ -11,6 +11,7 @@ function ExpressDNS (options) {
 
 	DNS.use(function (req, res, next) {
 		req.questions.forEach(function (question) {
+			question.header = req.header;
 			question.remote = req.remote;
 			question.typeName = (dns.consts.qtypeToName(question.type) || "").toLowerCase();
 		});
@@ -38,7 +39,7 @@ function ExpressDNS (options) {
 					
 					//this is where the matching happens.
 					//TODO: expand this to handle matching in ways other than regex
-					if ((question.typeName === ltype || ltype === 'all') && (question.match = route.exec(question.name)) ) {
+					if ((question.typeName === ltype || ltype === 'all' || question.typeName === 'any') && (question.match = route.exec(question.name))) {
 						match = true;
 						res.begins += 1;
 
@@ -78,6 +79,7 @@ function DNSRequest (req, res) {
 
 	self.questions = req.question;
 	self.remote = req.address;
+	self.header = req.header;
 }
 
 function DNSResponse (req, res) {
