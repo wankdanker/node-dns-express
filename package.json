@@ -1,6 +1,6 @@
 {
   "name": "dns-express",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "An Express style DNS server",
   "main": "index.js",
   "dependencies": {
