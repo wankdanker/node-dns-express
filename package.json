@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "native-dns": "^0.7.0",
-    "usey": "^1.0.2"
+    "usey": "^1.5.0"
   },
   "devDependencies": {},
   "scripts": {
