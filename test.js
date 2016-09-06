@@ -2,6 +2,10 @@ var ExpressDNS = require('./');
 
 var t = ExpressDNS();
 
+t.on('error', function (err) {
+	console.log(err);
+});
+
 t.use(function (req, res, next) {
 	console.log('all use');
 

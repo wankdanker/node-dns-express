@@ -15,5 +15,9 @@ server.use(function (req, res) {
 	res.end();
 });
 
+server.on('error', function (err) {
+	console.log(err);
+});
+
 server.listen(53535)
 

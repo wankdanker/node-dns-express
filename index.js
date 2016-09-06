@@ -64,6 +64,14 @@ function ExpressDNS (options) {
 		server.close.apply(server, arguments);
 	};
 
+	//copy and bind usey's events to the DNS object
+	DNS.on = DNS.events.on.bind(DNS.events);
+	DNS.emit = DNS.events.emit.bind(DNS.events);
+
+	//when the server has an error, re-send it to
+	//DNS express' error handler
+	server.on('error', DNS.emit.bind(DNS, 'error'));
+
 	server.on('request', function (req, res) {
 		var request = new DNSRequest(req, res);
 		var response = new DNSResponse(req, res);
