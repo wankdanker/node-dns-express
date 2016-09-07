@@ -70,7 +70,7 @@ function ExpressDNS (options) {
 	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply#Using_apply_in_monkey-patching
 	//var close = DNS.events.close.bind(DNS.events);
 	//DNS.events.close = function () {
-	//	return DNS.events.close.apply(DNS.events, arguments);
+	//	return close.apply(DNS.events, arguments);
 	//};
 
 	// receive requests from the native-dns server
