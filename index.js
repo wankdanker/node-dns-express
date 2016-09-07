@@ -7,7 +7,9 @@ module.exports = ExpressDNS;
 
 function ExpressDNS (options) {
 	var DNS = Usey();
-	var server = dns.createServer(options);
+
+	// replace the EventEmitter on the UseyInstance object with the native-dns server
+	DNS.events = dns.createServer(options);
 
 	DNS.use(function (req, res, next) {
 		req.questions.forEach(function (question) {
@@ -22,7 +24,8 @@ function ExpressDNS (options) {
 	dnsTypes.concat("ALL").forEach(function (type) {
 		var ltype = type.toLowerCase();
 
-		DNS[ltype] = function (route, fn) {
+		// add the ltype methods to the native-dns server
+		DNS.events[ltype] = function (route, fn) {
 			if (arguments.length === 1) {
 				fn = route;
 				route = undefined;
@@ -36,7 +39,7 @@ function ExpressDNS (options) {
 
 				for (var x = 0; x < questions.length; x++) {
 					question = questions[x];
-					
+
 					//this is where the matching happens.
 					//TODO: expand this to handle matching in ways other than regex
 					if ((question.typeName === ltype || ltype === 'all' || question.typeName === 'any') && (question.match = route.exec(question.name))) {
@@ -56,30 +59,30 @@ function ExpressDNS (options) {
 		};
 	});
 
-	DNS.listen = function () {
-		server.serve.apply(server, arguments);
-	};
+	// copy these Usey methods to the native-dns server
+	DNS.events.use = DNS.use.bind(DNS);
+	DNS.events.unuse = DNS.unuse.bind(DNS);
 
-	DNS.close = function () {
-		server.close.apply(server, arguments);
-	};
+	// duplicate the native-dns serve method as listen
+	DNS.events.listen = DNS.events.serve;
 
-	//copy and bind usey's events to the DNS object
-	DNS.on = DNS.events.on.bind(DNS.events);
-	DNS.emit = DNS.events.emit.bind(DNS.events);
+	// optionally monkey-patch the native-dns close method to hook-in any required 'before-close' logic
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply#Using_apply_in_monkey-patching
+	//var close = DNS.events.close.bind(DNS.events);
+	//DNS.events.close = function () {
+	//	return DNS.events.close.apply(DNS.events, arguments);
+	//};
 
-	//when the server has an error, re-send it to
-	//DNS express' error handler
-	server.on('error', DNS.emit.bind(DNS, 'error'));
-
-	server.on('request', function (req, res) {
+	// receive requests from the native-dns server
+	DNS.events.on('request', function (req, res) {
 		var request = new DNSRequest(req, res);
 		var response = new DNSResponse(req, res);
 
 		DNS(request, response);
 	});
 
-	return DNS;
+	// return the native-dns server
+	return DNS.events;
 }
 
 function DNSRequest (req, res) {
