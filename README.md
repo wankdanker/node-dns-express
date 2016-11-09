@@ -16,7 +16,7 @@ example
 ```js
 var server = require('dns-express')();
 
-server.a(/[^.]*.domain.com/, function (req, res, next) {
+server.a(/^(?:[^.]+\.)*domain\.com$/i, function (req, res, next) {
 	//Add an A record to the response's answer.
 	res.a({
 		name : req.name
